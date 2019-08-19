@@ -31,8 +31,9 @@
 1.汉化补丁包含：Aqua_cn.cdo、AQUA_CN.exe、Crescendo.dll、Crescendo.ini，请注意检查补丁完整性。  
 2.Aqua_beu.cdo是游戏界面美化补丁，Aqua_mod.cdo是小游戏作弊补丁。这两个均为汉化追加补丁。如果想玩原版画风和小游戏不需要作弊的可以删掉那两个补丁。  
 3.游戏启动会有3~4秒的黑屏（视CPU计算能力而定），此为正常现象。  
-4.请勿修改Crescendo.ini，可能会导致汉化无法启动！  
+4.请勿修改Crescendo.ini，可能会导致汉化无法启动！ 
+5.运行前请检查当前目录有没有日语原版的ひまわり アクアアフター.exe。或者，傂傑傢傝 傾僋傾傾僼僞乕丂.exe。  
 
 【其他】  
-Crescendo程序本体遵循MIT Open Source License。允许任何人复制使用以及修改。分发时请附带MIT授权协议。  
+Crescendo程序本体遵循MIT Open Source License。允许任何人复制使用以及修改，但请附带MIT授权协议。  
 请自行使用VS添加源代码进行编译。  
