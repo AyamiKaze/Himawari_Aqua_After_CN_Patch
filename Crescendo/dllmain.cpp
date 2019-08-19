@@ -22,6 +22,12 @@ typedef int(WINAPI* PfuncMultiByteToWideChar)(
 	_Out_opt_ LPWSTR lpWideCharStr,
 	_In_      int    cchWideChar);
 
+void memcopy(void* dest, void*src, size_t size)
+{
+	DWORD oldProtect;
+	VirtualProtect(dest, size, PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(dest, src, size);
+}
 
 char* wtocUTF(LPCTSTR str)
 {
@@ -50,13 +56,6 @@ LPWSTR ctowUTF(char* str)
 	return out;
 }
 
-
-static void make_console() {
-	AllocConsole();
-	freopen("CONOUT$", "w", stdout);
-	freopen("CONIN$", "r", stdin);
-	cout << "Crescendo Ver 1.0.4\n\n" << endl;
-}
 int WINAPI NewMultiByteToWideChar(UINT cp, DWORD dwFg, LPCSTR lpMBS, int cbMB, LPWSTR lpWCS, int ccWC)
 {
 	__asm
@@ -84,9 +83,20 @@ int WINAPI NewMultiByteToWideChar(UINT cp, DWORD dwFg, LPCSTR lpMBS, int cbMB, L
 	return ret;
 }
 
+PVOID g_pOldCreateFontIndirectA = NULL;
+typedef int (WINAPI *PfuncCreateFontIndirectA)(LOGFONTA *lplf);
+int WINAPI NewCreateFontIndirectA(LOGFONTA *lplf)
+{
+	if (lplf->lfCharSet == 0x80)
+	{
+		lplf->lfCharSet = ANSI_CHARSET;//SYSTEM FONT
+	}
+	return ((PfuncCreateFontIndirectA)g_pOldCreateFontIndirectA)(lplf);
+}
+
 void LoadStringMap()
 {
-	ifstream fin("Setup.ini");
+	ifstream fin("Crescendo.ini");
 	const int LineMax = 0x99999;//其实用不到这么大2333
 	char str[LineMax];
 	if (fin.is_open())
@@ -107,6 +117,27 @@ void LoadStringMap()
 	}
 }
 
+void MyCharSet()
+{
+	BYTE Patch1[] = { 0xC6 };
+	BYTE Patch2[] = { 0x45 };
+	BYTE Patch3[] = { 0xD7 };
+	BYTE Patch4[] = { 0x86 };
+	BYTE Patch5[] = { 0x90 };
+	BYTE Patch6[] = { 0x90 };
+
+	BYTE Patch7[] = { 0x86 };
+
+	memcopy((void*)0x49BAA1, Patch1, sizeof(Patch1));
+	memcopy((void*)0x49BAA2, Patch2, sizeof(Patch2));
+	memcopy((void*)0x49BAA3, Patch3, sizeof(Patch3));
+	memcopy((void*)0x49BAA4, Patch4, sizeof(Patch4));
+	memcopy((void*)0x49BAA5, Patch5, sizeof(Patch5));
+	memcopy((void*)0x49BAA6, Patch6, sizeof(Patch6));
+
+	memcopy((void*)0x51235A, Patch7, sizeof(Patch7));
+
+}
 
 void HookStart()
 {
@@ -114,6 +145,14 @@ void HookStart()
 	DetourTransactionBegin();
 	DetourAttach(&g_pOldMultiByteToWideChar, NewMultiByteToWideChar);
 	DetourTransactionCommit();
+
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	g_pOldCreateFontIndirectA = DetourFindFunction("GDI32.dll", "CreateFontIndirectA");
+	DetourAttach(&g_pOldCreateFontIndirectA, NewCreateFontIndirectA);
+	DetourTransactionCommit();
+
+	MyCharSet();
 }
 
 
@@ -125,7 +164,6 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		//make_console();
 		LoadStringMap();
 		HookStart();
 	case DLL_THREAD_ATTACH:
