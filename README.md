@@ -34,4 +34,5 @@
 4.请勿修改Crescendo.ini，可能会导致汉化无法启动！  
 
 【其他】  
-Crescendo程序本体遵循MIT Open Source License。允许任何人复制使用以及修改。分发时请附带MIT授权协议。
+Crescendo程序本体遵循MIT Open Source License。允许任何人复制使用以及修改。分发时请附带MIT授权协议。  
+请自行使用VS添加源代码进行编译。  
